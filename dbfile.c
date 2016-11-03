@@ -1191,10 +1191,9 @@ int dbfile_load_hashes(struct hash_tree *hash_tree)
 		return ret;
 
 #define GET_DUPLICATE_HASHES \
-	"SELECT hashes.digest, ino, subvol, loff, flags FROM hashes " \
-	"JOIN (SELECT digest FROM hashes GROUP BY digest " \
-				"HAVING count(*) > 1) AS duplicate_hashes " \
-	"on hashes.digest = duplicate_hashes.digest;"
+"SELECT hashes.digest, ino, subvol, loff, flags " \
+"FROM hashes " \
+"WHERE digest IN (SELECT digest FROM digest WHERE refCounter > 1);"
 
 	ret = sqlite3_prepare_v2(db, GET_DUPLICATE_HASHES, -1, &stmt, NULL);
 	if (ret) {
