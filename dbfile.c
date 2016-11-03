@@ -126,6 +126,34 @@ out:
 	return ret;
 }
 
+int create_triggers(sqlite3 *db)
+{
+	int ret;
+#define	CREATE_HASH_AFTER_INSERT_TRIGGER						\
+"CREATE TRIGGER tri_hashes_after_insert AFTER INSERT ON hashes FOR EACH ROW" \
+"BEGIN" \
+"	INSERT OR IGNORE INTO digest (digest, refCounter) VALUES (new.digest, 0);" \
+"	UPDATE digest SET refCounter = refCounter + 1 where digest = new.digest;" \
+"END;"
+	ret = sqlite3_exec(db, CREATE_HASH_AFTER_INSERT_TRIGGER, NULL, NULL, NULL);
+	if (ret)
+		goto out;
+
+#define	CREATE_HASH_AFTER_DELETE_TRIGGER						\
+"CREATE TRIGGER tri_hashes_after_delete AFTER DELETE ON hashes FOR EACH ROW" \
+"BEGIN" \
+"	UPDATE digest SET refCounter = refCounter + 1 WHERE digest = old.digest;" \
+"	DELETE FROM digest WHERE digest = old.digest AND refCounter <= 0;" \
+"END;"
+	ret = sqlite3_exec(db, CREATE_HASH_AFTER_DELETE_TRIGGER, NULL, NULL, NULL);
+
+out:
+	if (ret)
+		perror_sqlite(ret, "creating database trigger");
+	return ret;
+}
+
+
 static int dbfile_set_modes(sqlite3 *db)
 {
 	int ret;
