@@ -85,6 +85,12 @@ static int create_tables(sqlite3 *db)
 	if (ret)
 		goto out;
 
+#define	CREATE_TABLE_DIGEST					\
+"CREATE TABLE digest(digest BLOB KEY NOT NULL, refCounter INTEGER);"
+	ret = sqlite3_exec(db, CREATE_TABLE_DIGEST, NULL, NULL, NULL);
+	if (ret)
+		goto out;
+
 out:
 	return ret;
 }
