@@ -167,6 +167,34 @@ static int dbfile_set_modes(sqlite3 *db)
 	return ret;
 }
 
+int __dbfile_create(sqlite3 *db)
+{
+	int ret;
+	
+	ret = create_tables(db);
+	if (ret) {
+		perror_sqlite(ret, "creating tables");
+		goto out;
+	}
+
+	ret = create_indexes(db);
+	if (ret) {
+		perror_sqlite(ret, "creating indexes");
+		goto out;
+	}
+
+	ret = create_triggers(db);
+	if (ret) {
+		perror_sqlite(ret, "creating triggers");
+		goto out;
+	}
+
+out:
+	if (ret)
+		sqlite3_close(db);
+	return ret;
+}
+
 int dbfile_create(char *filename, int *dbfile_is_new)
 {
 	int ret, inmem = 0, newfile = 0;
@@ -196,26 +224,7 @@ reopen:
 	}
 
 	if (newfile || inmem) {
-		ret = create_tables(db);
-		if (ret) {
-			perror_sqlite(ret, "creating tables");
-			sqlite3_close(db);
-			return ret;
-		}
-		
-		ret = create_indexes(db);
-		if (ret) {
-			perror_sqlite(ret, "creating indexes");
-			sqlite3_close(db);
-			return ret;
-		}
-		
-		ret = create_triggers(db);
-		if (ret) {
-			perror_sqlite(ret, "creating triggers");
-			sqlite3_close(db);
-			return ret;
-		}
+		__dbfile_create(db);
 	} else {
 		ret = __dbfile_get_config(db, NULL, NULL, NULL, NULL, NULL,
 					  &vmajor, &vminor, NULL, NULL);
