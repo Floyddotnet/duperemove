@@ -67,26 +67,26 @@ static int create_tables(sqlite3 *db)
 	int ret;
 
 #define CREATE_TABLE_CONFIG	\
-"CREATE TABLE config(keyname TEXT PRIMARY KEY NOT NULL, keyval BLOB);"
+"CREATE TABLE IF NOT EXISTS config(keyname TEXT PRIMARY KEY NOT NULL, keyval BLOB);"
 	ret = sqlite3_exec(db, CREATE_TABLE_CONFIG, NULL, NULL, NULL);
 	if (ret)
 		goto out;
 
 #define	CREATE_TABLE_FILES	\
-"CREATE TABLE files(filename TEXT PRIMARY KEY NOT NULL, ino INTEGER, "\
+"CREATE TABLE IF NOT EXISTS files(filename TEXT PRIMARY KEY NOT NULL, ino INTEGER, "\
 "subvol INTEGER, size INTEGER, blocks INTEGER, mtime INTEGER, dedupe_seq INTEGER);"
 	ret = sqlite3_exec(db, CREATE_TABLE_FILES, NULL, NULL, NULL);
 	if (ret)
 		goto out;
 
 #define	CREATE_TABLE_HASHES					\
-"CREATE TABLE hashes(digest BLOB KEY NOT NULL, ino INTEGER, subvol INTEGER, loff INTEGER, flags INTEGER);"
+"CREATE TABLE IF NOT EXISTS hashes(digest BLOB KEY NOT NULL, ino INTEGER, subvol INTEGER, loff INTEGER, flags INTEGER);"
 	ret = sqlite3_exec(db, CREATE_TABLE_HASHES, NULL, NULL, NULL);
 	if (ret)
 		goto out;
 
 #define	CREATE_TABLE_DIGEST					\
-"CREATE TABLE digest(digest BLOB KEY NOT NULL, refCounter INTEGER);"
+"CREATE TABLE IF NOT EXISTS digest(digest BLOB KEY NOT NULL, refCounter INTEGER);"
 	ret = sqlite3_exec(db, CREATE_TABLE_DIGEST, NULL, NULL, NULL);
 	if (ret)
 		goto out;
@@ -130,7 +130,7 @@ int create_triggers(sqlite3 *db)
 {
 	int ret;
 #define	CREATE_HASH_AFTER_INSERT_TRIGGER						\
-"CREATE TRIGGER tri_hashes_after_insert AFTER INSERT ON hashes FOR EACH ROW " \
+"CREATE TRIGGER IF NOT EXISTS tri_hashes_after_insert AFTER INSERT ON hashes FOR EACH ROW " \
 "BEGIN " \
 "	INSERT OR IGNORE INTO digest (digest, refCounter) VALUES (new.digest, 0); " \
 "	UPDATE digest SET refCounter = refCounter + 1 where digest = new.digest; " \
@@ -140,7 +140,7 @@ int create_triggers(sqlite3 *db)
 		goto out;
 
 #define	CREATE_HASH_AFTER_DELETE_TRIGGER						\
-"CREATE TRIGGER tri_hashes_after_delete AFTER DELETE ON hashes FOR EACH ROW " \
+"CREATE TRIGGER IF NOT EXISTS tri_hashes_after_delete AFTER DELETE ON hashes FOR EACH ROW " \
 "BEGIN " \
 "	UPDATE digest SET refCounter = refCounter + 1 WHERE digest = old.digest; " \
 "	DELETE FROM digest WHERE digest = old.digest AND refCounter <= 0; " \
