@@ -209,6 +209,13 @@ reopen:
 			sqlite3_close(db);
 			return ret;
 		}
+		
+		ret = create_triggers(db);
+		if (ret) {
+			perror_sqlite(ret, "creating triggers");
+			sqlite3_close(db);
+			return ret;
+		}
 	} else {
 		ret = __dbfile_get_config(db, NULL, NULL, NULL, NULL, NULL,
 					  &vmajor, &vminor, NULL, NULL);
