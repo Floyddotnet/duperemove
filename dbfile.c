@@ -92,12 +92,12 @@ out:
 int create_indexes(sqlite3 *db)
 {
 	int ret;
-#define	CREATE_DIGEST_INDEX						\
-"create index if not exists idx_digest on hashes(digest);"
-	ret = sqlite3_exec(db, CREATE_DIGEST_INDEX, NULL, NULL, NULL);
+#define	CREATE_HASH_DIGEST_INDEX						\
+	"create index if not exists idx_hash_digest on hashes(digest);"
+	ret = sqlite3_exec(db, CREATE_HASH_DIGEST_INDEX, NULL, NULL, NULL);
 	if (ret)
 		goto out;
-
+		
 #define	CREATE_HASHES_INO_INDEX						\
 "create index if not exists idx_hashes_inosub on hashes(ino, subvol);"
 	ret = sqlite3_exec(db, CREATE_HASHES_INO_INDEX, NULL, NULL, NULL);
